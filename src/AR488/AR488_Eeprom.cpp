@@ -2,24 +2,10 @@
 #include <EEPROM.h>
 #include "AR488_Eeprom.h"
 
-/***** AR488_Eeprom.cpp, ver. 0.00.06, 16/06/2021 *****/
-/*
- * EEPROM functions implementation
- */
-
-
-
-/***** Forward declarations of internal functions *****/
 uint16_t getCRC16(uint8_t bytes[], uint16_t bsize);
 unsigned long int getCRC32(uint8_t bytes[], uint16_t bsize);
 
-
-/********************************/
-/***** AVR EEPROM functions *****/
-/********************************/
 #ifdef __AVR__
-
-/***** Show all bytes of EEPROM data *****/
 
 void epViewData(Stream& outputStream) {
   uint16_t addr = 0;
@@ -43,8 +29,6 @@ void epViewData(Stream& outputStream) {
   }
 }
 
-
-/***** Clear the EEPROM *****/
 void epErase() {
   int i = EESIZE;
 
@@ -53,13 +37,6 @@ void epErase() {
     EEPROM.write(i, 0xFF);
 }
 
-
-/***** Write data to EEPROM (with CRC) *****/
-/*
- * addr = EEPROM address
- * cfg = config data union object
- * csize = size of config data object
- */
 void epWriteData(uint8_t cfgdata[], uint16_t cfgsize) {
   uint16_t crc;
   uint16_t addr = EESTART;
@@ -75,13 +52,6 @@ void epWriteData(uint8_t cfgdata[], uint16_t cfgsize) {
   // Commit write to Flash
 }
 
-
-/***** Read data from EEPROM (with CRC check) *****/
-/*
- * addr = EEPROM address
- * cfg = config data union object
- * csize = size of config data object
- */
 bool epReadData(uint8_t cfgdata[], uint16_t cfgsize) {
   uint16_t crc1;
   uint16_t crc2;
@@ -94,14 +64,11 @@ bool epReadData(uint8_t cfgdata[], uint16_t cfgsize) {
   for (i=0;i<cfgsize;i++){
     cfgdata[i] = EEPROM.read(EESTART+i);
   }
-//  EEPROM.get(addr, cfgdata);
+
   // Get CRC of config
   crc2 = getCRC16(cfgdata, cfgsize);
-  if (crc1==crc2) {
-    return true;
-  }else{
-    return false;
-  }
+  if (crc1==crc2) return true;
+  else return false;
 }
 
 
@@ -111,135 +78,10 @@ bool isEepromClear(){
   // Load (first 16 bits) data from EEPROM
   EEPROM.get(0, crc);
   // Return result
-  if (crc==-1) {
-    return true;
-  }else{
-    return false;
-  }
+  if (crc==-1) return true;
+  else return false;
 }
-
 #endif
-
-/************************************/
-/***** ESP8266 EEPROM functions *****/
-/************************************/
-#if defined(ESP8266) || defined(ESP32)
-
-/***** Show all 512 bytes of EEPROM data *****/
-void epViewData(Stream& outputStream) {
-  uint16_t addr = 0;
-  uint8_t dbuf[16];
-  char cnt[4]= {'\0'};
-
-  // Load EEPROM data from Flash
-  EEPROM.begin(EESIZE);
-  // Read data
-  memset(dbuf, 0x00, 16);
-  for (addr=0; addr<512; addr=addr+16){
-    sprintf(cnt, "%03d", addr);
-    outputStream.print(cnt);
-    outputStream.print(":");
-    EEPROM.get(addr, dbuf);
-    for (int i=0; i<16; i++){
-      outputStream.print(" ");
-      sprintf(oct, "%02X", dbuf[i]);
-      outputStream.print(oct);
-    }
-  }
-  EEPROM.end();
-}
-
-
-/***** Clear the EEPROM *****/
-void epErase() {
-  int i = EESIZE;
-
-  // Load EEPROM data from Flash
-  EEPROM.begin(EESIZE);
-  for (i=0; i<EESIZE; i++)
-    EEPROM.write(i, 0xFF);
-  EEPROM.commit();
-  EEPROM.end();
-}
-
-
-/***** Write data to EEPROM (with CRC) *****/
-/*
- * addr = EEPROM address
- * cfg = config data union object
- * csize = size of config data object
- */
-void epWriteData(uint8_t cfgdata[], uint16_t cfgsize) {
-  uint16_t crc;
-  uint16_t addr = EESTART;
-  
-  // Load EEPROM data from Flash
-  EEPROM.begin(EESIZE);
-  // Write data
-  EEPROM.put(addr,cfgdata);
-  // Write CRC
-  crc = getCRC16(cfgdata, cfgsize);
-  EEPROM.put(0, crc);
-  // Commit write to Flash
-  EEPROM.commit();
-  EEPROM.end();
-}
-
-
-/***** Read data from EEPROM (with CRC check) *****/
-/*
- * addr = EEPROM address
- * cfg = config data union object
- * csize = size of config data object
- */
-bool epReadData(uint8_t cfgdata[], uint16_t cfgsize) {
-  uint16_t crc1;
-  uint16_t crc2;
-  uint16_t addr = EESTART;
-
-  // Load EEPROM data from Flash
-  EEPROM.begin(EESIZE);
-  // Read CRC
-  EEPROM.get(0,crc1);
-  // Read data
-  EEPROM.get(addr, cfgdata);
-  EEPROM.end();
-  // Get CRC of config
-  crc2 = getCRC16(cfgdata, cfgsize);
-  if (crc1==crc2) {
-    return true;
-  }else{
-    return false;
-  }
-}
-
-
-bool isEepromClear(){
-  int16_t crc = 0;
-
-  // Load data from EEPROM
-  EEPROM.begin(EESIZE);
-  // Read data
-  EEPROM.get(0, crc);
-  EEPROM.end(); 
-  // Return result
-  if (crc==-1) {
-    return true;
-  }else{
-    return false;
-  }
-}
-
-#endif
-
-
-
-/**********************************/
-/***** COMMON FUNCTIONS *****/
-/**********************************/
-
-
-/***** Generate a CRC *****/
 
 unsigned long int getCRC32(uint8_t bytes[], uint16_t bsize) {
 

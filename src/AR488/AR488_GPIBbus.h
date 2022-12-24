@@ -1,38 +1,16 @@
 #ifndef AR488_GPIBbus_H
 #define AR488_GPIBbus_H
 
-//#include <SD.h>
 #include "AR488_Config.h"
 #include "AR488_Layouts.h"
 #include "AR488_ComPorts.h"
-
-#ifdef EN_STORAGE
-  #ifdef EN_TEK_4924
-    #include "AR488_Store_Tek_4924.h"
-  #endif
-#endif
-
-/***** AR488_GPIBbus.cpp, ver. 0.51.15, 12/10/2022 *****/
-
-
-/*********************************************/
-/***** GPIB COMMAND & STATUS DEFINITIONS *****/
-/***** vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv *****/
 
 #define GPIB_CFG_SIZE 83
 
 /***** Debug Port *****/
 #ifdef DB_SERIAL_ENABLE
   extern Stream& debugStream;
-  /* Configured in Config.h */
-  //#define DEBUG_GPIBbus_RECEIVE
-  //#define DEBUG_GPIBbus_SEND
-  //#define DEBUG_GPIBbus_CONTROL
-  //#define SN7516X
-  /* Configured in Config.h */
-
 #endif
-
 
 /***** Universal Multiline commands (apply to all devices) *****/
 #define GC_LLO 0x11
@@ -76,20 +54,8 @@
 #define NO_EOI false
 #define WITH_EOI true
 
-/***** ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ *****/
-/***** GPIB COMMAND & STATUS DEFINITIONS *****/
-/*********************************************/
-
-
-/****************************************/
-/***** GPIB CLASS OBJECT DEFINITION *****/
-/***** vvvvvvvvvvvvvvvvvvvvvvvvvvvv *****/
-
 class GPIBbus {
-
-
   public:
-
     /***** Controller configuration *****/
     union GPIBconf{
       struct{
@@ -114,11 +80,7 @@ class GPIBbus {
     };
 
     union GPIBconf cfg;
-
-// WORK REQUIRED!
     bool txBreak;  // Signal to break the GPIB transmission
-// WORK REQUIRED!
-
     uint8_t cstate = 0;
 
     GPIBbus();
@@ -159,7 +121,6 @@ class GPIBbus {
     void setControlVal(uint8_t value, uint8_t mask, uint8_t mode);
     void setDataVal(uint8_t);
 
-//    void setDeviceAddressedState(uint8_t stat);
     bool isDeviceAddressedToListen();
     bool isDeviceAddressedToTalk();
     bool isDeviceInIdleState();
@@ -171,23 +132,10 @@ class GPIBbus {
     bool haveAddressedDevice();
 
   private:
-
     bool deviceAddressed;
-//    uint8_t deviceAddressedState;
-    
-//    bool writeByteHandshake(uint8_t db);
-//    boolean waitOnPinState(uint8_t state, uint8_t pin, int interval);
     bool isTerminatorDetected(uint8_t bytes[3], uint8_t eorSequence);
     void setSrqSig();
     void clrSrqSig();
-
-    // Interrupt flag for MCP23S17
-#if defined(AR488_MCP23S17) || defined(AR488_MCP23017)
-//    extern volatile bool mcpIntA;  // MCP23x17 interrupt handler
-//    uint8_t mcpPinAssertedReg = 0;
-#endif
-    
 };
-
 
 #endif // AR488_GPIBbus_H
