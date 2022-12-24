@@ -1,7 +1,7 @@
 #ifndef AR488_CONFIG_H
 #define AR488_CONFIG_H
 
-#define FWVER "AR488 GPIB controller, ver. 0.51.djd 12/10/2022"
+#define FWVER "AR488 GPIB controller, ver 0.51djd B 12/10/2022"
 
 #define AR488_CUSTOM
 #define DATAPORT_ENABLE

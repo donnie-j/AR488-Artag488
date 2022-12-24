@@ -232,16 +232,13 @@ void getCmd(char *buffr) {
   }
 }
 
-char line[PBSIZE];
 void execCmd(char *buffr, uint8_t dsize) {
-  memcpy(line, buffr+2, dsize-2); // save line stripping off the ++, clear pBuf
+  if (isVerbose) dataPort.println(); // Shift output to next line
+
+  getCmd(buffr+2);
+
   flushPbuf();
   lnRdy = 0;
-
-  line[dsize - 2] = line[dsize - 1] = '\0';
-
-  if (isVerbose) dataPort.println(); // Shift output to next line
-  getCmd(line);
 
   if (isVerbose) showPrompt();
 }
