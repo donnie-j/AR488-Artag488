@@ -25,7 +25,7 @@
 #include "AR488_cmd.h"
 #include "AR488_help.h"
 
-#define PBSIZE 128
+#define PBSIZE 256
 
 #ifdef USE_MACROS
 /***** STARTUP MACRO *****/

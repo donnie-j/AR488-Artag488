@@ -301,7 +301,7 @@ void GPIBbus::sendData(char *data, uint8_t dsize) {
       err = writeByte(data[i], NO_EOI);
     } else {
       // Otherwise ignore non-escaped CR, LF and ESC
-      if ((data[i] != CR) || (data[i] != LF) || (data[i] != ESC)) err = writeByte(data[i], NO_EOI);
+      if ((data[i] != CR) && (data[i] != LF) && (data[i] != ESC)) err = writeByte(data[i], NO_EOI);
     }
     if (err) break;
   }
