@@ -285,6 +285,12 @@ bool GPIBbus::receiveData(Stream& dataStream, bool detectEoi, bool detectEndByte
 void GPIBbus::sendData(char *data, uint8_t dsize) {
 
   bool err = false;
+  char dend = dsize-1;
+  int i;
+
+  if (!(cfg.eos & 1)) dend++;
+  if (!(cfg.eos & 2)) dend++;
+
   // Controler can unlisten bus and address devices
   if (cfg.cmode == 2) {
     // Set control lines to write data (ATN unasserted)
@@ -294,15 +300,8 @@ void GPIBbus::sendData(char *data, uint8_t dsize) {
   }
 
   // Write the data string
-  for (int i = 0; i < dsize; i++) {
-    // If EOI asserting is on
-    if (cfg.eoi) {
-      // Send all characters
-      err = writeByte(data[i], NO_EOI);
-    } else {
-      // Otherwise ignore non-escaped CR, LF and ESC
-      if ((data[i] != CR) && (data[i] != LF) && (data[i] != ESC)) err = writeByte(data[i], NO_EOI);
-    }
+  for (i = 0; i < dsize; i++) {
+    err = writeByte(data[i], i == dend);
     if (err) break;
   }
 
@@ -310,20 +309,12 @@ void GPIBbus::sendData(char *data, uint8_t dsize) {
     // Write terminators according to EOS setting
     // Do we need to write a CR?
     if ((cfg.eos & 0x2) == 0) {
-      writeByte(CR, NO_EOI);
+      writeByte(CR, (i++) == dend);
     }
     // Do we need to write an LF?
     if ((cfg.eos & 0x1) == 0) {
-      writeByte(LF, NO_EOI);
+      writeByte(LF, (i++) == dend);
     }
-  }
-
-  // If EOI enabled and no more data to follow then assert EOI
-  if (cfg.eoi) {
-    setGpibState(0b00010000, 0b00010000, 1);
-    setGpibState(0b00000000, 0b00010000, 0);
-    delayMicroseconds(40);
-    setGpibState(0b00010000, 0b00010000, 0);
   }
 
   if (cfg.cmode == 2) {   // Controller mode
@@ -612,7 +603,7 @@ uint8_t GPIBbus::writeByte(uint8_t db, bool isLastByte) {
   if (stage == 9) {
     if (cfg.eoi && isLastByte) {
       // If EOI enabled and this is the last byte then un-assert both DAV and EOI
-      if (cfg.eoi && isLastByte) setGpibState(0b00011000, 0b00011000, 0);
+      setGpibState(0b00011000, 0b00011000, 0);
     }else{
       // Unassert DAV
       setGpibState(0b00001000, 0b00001000, 0);

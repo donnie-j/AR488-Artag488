@@ -137,9 +137,9 @@ uint8_t parseInput(char c) {
               showPrompt();
             }
             return 0;
-          } else { // Buffer starts with ++ and contains at least 3 characters - command?
-            if (pbPtr>2 && isCmd(pBuf) && !isPlusEscaped) { // Exclamation mark (break read loop command)
-              if (pBuf[2]==0x21) {
+          } else { // check ++ and contains at least 3 characters - command?
+            if (pbPtr>2 && isCmd(pBuf) && !isPlusEscaped) {
+              if (pBuf[2]==0x21) { // Exclamation mark (break read loop command)
                 r = 3;
                 flushPbuf();
               }else{
@@ -180,7 +180,7 @@ uint8_t parseInput(char c) {
   }
 
   if (pbPtr >= PBSIZE) {
-    if (isCmd(pBuf) && !r) {  // Command without terminator and buffer full
+    if (isCmd(pBuf) && !r && !isPlusEscaped) {  // Command without terminator and buffer full
       if (isVerbose) {
         dataPort.println(F("ERROR - Command buffer overflow!"));
       }
